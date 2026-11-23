@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERWELY | إرويلي — منصة قراءة ومشاركة القصص</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 1. الشريط العلوي الرئيسي للموقع -->
+  <header class="top-banner" id="mainHeader">
+    <div class="container banner-inner">
+      <div class="brand-box" id="brandHomeBtn" role="button" tabindex="0" title="العودة للرئيسية">
+        <span class="brand-en">ERWELY</span>
+        <span class="brand-ar">إرويلي</span>
+      </div>
+      <nav class="banner-actions">
+        <button type="button" class="btn-outline-light" id="navHomeBtn">الرئيسية</button>
+        <button type="button" class="btn-glow-light" id="navShareBtn">شارك قصتك</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <!-- ==================== الصفحة الأولى: الرئيسية ==================== -->
+    <section id="homeView" class="view-section active-view">
+      <div class="container">
+        <!-- شبكة كروت المجموعات -->
+        <div class="section-header">
+          <h1 class="section-title">استكشف مجموعات القصص</h1>
+          <p class="section-subtitle">اختر المجموعة التي تستهويك وابدأ رحلة قراءة هادئة وممتعة</p>
+        </div>
+
+        <div id="categoriesGrid" class="cards-grid">
+          <!-- يتم توليد كروت المجموعات ديناميكياً من ملف data.js -->
+        </div>
+
+        <!-- قسم الدعوة لمشاركة القصص ("شارك الآن") -->
+        <div class="share-cta-box">
+          <div class="share-cta-content">
+            <h2>هل لديك قصة تستحق أن تُروى؟</h2>
+            <p>
+              شاركنا قصة من تأليفك أو روايتك ليقرأها الزوار في <strong>ERWELY (إرويلي)</strong>.
+              نلتزم بتدوين <strong>اسم المؤلف أو الراوي</strong> بكل تقدير عند مراجعة القصة ونشرها في مجموعتها المناسبة.
+            </p>
+          </div>
+          <button type="button" class="btn-primary-glow" id="openShareFromCta">
+            شارك الآن
+          </button>
+        </div>
+
+        <!-- وصف كامل للموقع في أسفل الصفحة الرئيسية -->
+        <footer class="about-site-box">
+          <h2>عن منصة ERWELY (إرويلي)</h2>
+          <p>
+            <strong>إرويلي (ERWELY)</strong> هي مساحة رقمية عربية مصممة بعناية لعشاق القراءة والحكايات بمختلف ألوانها؛
+            من القصص الواقعية والاجتماعية، إلى الخيال والغموض والتاريخ والتجارب الملهمة.
+            نهدف لتقديم تجربة قراءة مريحة للعين وسريعة التصفح دون تشتيت أو نوافذ منبثقة مزعجة،
+            مع فتح الباب أمام الكُتّاب والرواة الجدد والمحترفين لإرسال أعمالهم ومراجعتها ونشرها بأسمائهم لتصل إلى جمهور شغوف بالكلمة.
+          </p>
+        </footer>
+      </div>
+    </section>
+
+    <!-- ==================== الصفحة الثانية: صفحة المجموعة والقصص ==================== -->
+    <section id="categoryView" class="view-section">
+      <!-- شريط علوي يؤكد اسم المجموعة مع زر رجوع واضح -->
+      <div class="sub-header-bar">
+        <div class="container sub-header-inner">
+          <button type="button" class="btn-back" id="backToHomeFromCat">
+            → العودة للرئيسية
+          </button>
+          <h1 class="active-category-title" id="categoryPageTitle">اسم المجموعة</h1>
+        </div>
+      </div>
+
+      <div class="container">
+        <p class="category-desc-banner" id="categoryPageDesc"></p>
+        <div id="storiesGrid" class="cards-grid">
+          <!-- يتم توليد كروت القصص ديناميكياً -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== الصفحة الثالثة: عارض الـ PDF داخل نفس الموقع ==================== -->
+    <section id="readerView" class="view-section">
+      <div class="reader-top-bar">
+        <div class="container reader-bar-inner">
+          <button type="button" class="btn-back" id="backToCatFromReader">
+            → العودة للمجموعة
+          </button>
+          <div class="reader-meta">
+            <h2 id="readerStoryTitle">عنوان القصة</h2>
+            <span id="readerStoryInfo">المؤلف: ... • مدة القراءة: ...</span>
+          </div>
+          <a id="fallbackPdfLink" href="#" target="_blank" rel="noopener" class="btn-outline-light small-btn">
+            فتح مباشر
+          </a>
+        </div>
+      </div>
+
+      <div class="container reader-container">
+        <div id="pdfLoader" class="pdf-loader">
+          <div class="spinner"></div>
+          <p>جاري تحميل ملف القصة...</p>
+        </div>
+        <iframe
+          id="pdfViewerFrame"
+          class="pdf-frame"
+          title="عارض القصة PDF"
+        ></iframe>
+      </div>
+    </section>
+
+    <!-- ==================== الصفحة الرابعة: نموذج "شارك الآن" ==================== -->
+    <section id="shareView" class="view-section">
+      <div class="sub-header-bar">
+        <div class="container sub-header-inner">
+          <button type="button" class="btn-back" id="backToHomeFromShare">
+            → العودة للرئيسية
+          </button>
+          <h1 class="active-category-title">شارك قصتك على إرويلي</h1>
+        </div>
+      </div>
+
+      <div class="container form-container">
+        <form id="storySubmitForm" class="share-form-card" novalidate>
+          <p class="form-intro">
+            املأ البيانات التالية لإرسال قصتك للمراجعة. سيتم تدوين اسمك كمؤلف أو راوٍ عند الموافقة والنشر.
+          </p>
+
+          <div class="form-group">
+            <label for="authorName">اسم المؤلف أو الراوي <span class="req">*</span></label>
+            <input type="text" id="authorName" name="authorName" placeholder="مثال: أحمد محمود" required />
+          </div>
+
+          <div class="form-group">
+            <label for="storyTitle">عنوان القصة <span class="req">*</span></label>
+            <input type="text" id="storyTitle" name="storyTitle" placeholder="اكتب عنواناً معبراً لقصتك" required />
+          </div>
+
+          <div class="form-group">
+            <label for="storyCategory">المجموعة المناسبة للقصة <span class="req">*</span></label>
+            <select id="storyCategory" name="storyCategory" required>
+              <option value="">-- اختر المجموعة --</option>
+              <!-- يتم تعبئة المجموعات ديناميكياً -->
+            </select>
+          </div>
+
+          <!-- اختيار طريقة إدخال القصة -->
+          <div class="form-group">
+            <label>طريقة إرسال محتوى القصة <span class="req">*</span></label>
+            <div class="input-mode-tabs">
+              <button type="button" class="mode-tab active" data-mode="text" id="tabWriteText">
+                كتابة القصة مباشرة
+              </button>
+              <button type="button" class="mode-tab" data-mode="pdf" id="tabUploadPdf">
+                رفع ملف PDF (حد أقصى 20MB)
+              </button>
+            </div>
+          </div>
+
+          <!-- الاختيار الثاني: مربع نص كبير شبيه بصندوق الكتابة -->
+          <div class="form-group" id="textInputWrapper">
+            <label for="storyText">نص القصة <span class="req">*</span></label>
+            <textarea
+              id="storyText"
+              name="storyText"
+              rows="10"
+              placeholder="اكتب أو الصق نص قصتك كاملاً هنا..."
+            ></textarea>
+          </div>
+
+          <!-- الاختيار الأول: رفع ملف PDF بحد أقصى 20 ميجابايت -->
+          <div class="form-group hidden" id="pdfInputWrapper">
+            <label for="storyPdfFile">ملف القصة (بصيغة PDF فقط — الحد الأقصى 20 ميجابايت) <span class="req">*</span></label>
+            <div class="file-drop-area" id="fileDropArea">
+              <input type="file" id="storyPdfFile" name="attachment" accept="application/pdf,.pdf" />
+              <p id="fileStatusText">اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)</p>
+            </div>
+            <div id="fileErrorMsg" class="alert-error hidden"></div>
+          </div>
+
+          <div id="formFeedback" class="form-feedback hidden"></div>
+
+          <button type="submit" class="btn-primary-glow full-width-btn" id="submitStoryBtn">
+            إرسال القصة للمراجعة
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
