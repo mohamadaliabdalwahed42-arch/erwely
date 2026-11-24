@@ -52,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
     storyCategorySelect.innerHTML = '<option value="">-- اختر المجموعة --</option>';
 
     ERWELY_DATA.forEach((cat) => {
-      // إنشاء كرت المجموعة (70% صورة + 30% نص)
       const card = document.createElement("article");
       card.className = "story-card";
       card.setAttribute("tabindex", "0");
@@ -77,7 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       categoriesGrid.appendChild(card);
 
-      // إضافة المجموعة لقائمة الاختيار في نموذج "شارك الآن"
       const option = document.createElement("option");
       option.value = cat.title;
       option.textContent = cat.title;
@@ -134,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
       pdfLoader.classList.add("hidden");
     };
 
-    // إخفاء مؤشر التحميل تلقائياً بعد 2.5 ثانية كاحتياط في بعض متصفحات الموبايل
     setTimeout(() => {
       pdfLoader.classList.add("hidden");
     }, 2500);
