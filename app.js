@@ -207,75 +207,36 @@ document.addEventListener("DOMContentLoaded", () => {
     fileStatusText.textContent = `تم اختيار الملف: ${file.name} (${sizeInMb} MB)`;
   });
 
-  // 5. إرسال النموذج إلى البريد الإلكتروني mohawen72@gmail.com
-  storySubmitForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    formFeedback.classList.add("hidden");
+  // 5. إرسال النموذج إلى البريد الإلكتروني عبر Web3Forms
+storySubmitForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  formFeedback.classList.add("hidden");
 
-    const authorName = document.getElementById("authorName").value.trim();
-    const storyTitle = document.getElementById("storyTitle").value.trim();
-    const storyCategory = storyCategorySelect.value;
-    const storyText = document.getElementById("storyText").value.trim();
-    const pdfFile = storyPdfFile.files[0];
+  const formData = new FormData(storySubmitForm);
+  if (!formData.get("access_key")) {
+    formData.append("access_key", "e37e26bb-e676-4815-bce1-2f80b268fd6f");
+  }
 
-    if (!authorName || !storyTitle || !storyCategory) {
-      showFeedback("يرجى ملء اسم المؤلف، عنوان القصة، واختيار المجموعة.", "error");
-      return;
-    }
+  try {
+    const response = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      body: formData,
+    });
+    const result = await response.json();
 
-    if (currentInputMode === "text" && !storyText) {
-      showFeedback("يرجى كتابة نص القصة في المربع المخصص أو التبديل لرفع ملف PDF.", "error");
-      return;
-    }
-
-    if (currentInputMode === "pdf" && !pdfFile) {
-      showFeedback("يرجى اختيار ملف PDF للقصة (بحد أقصى 20 ميجابايت).", "error");
-      return;
-    }
-
-    submitStoryBtn.disabled = true;
-    submitStoryBtn.textContent = "جاري إرسال القصة...";
-
-    try {
-      const formData = new FormData();
-      formData.append("_subject", `قصة جديدة على ERWELY: ${storyTitle}`);
-      formData.append("_captcha", "false");
-      formData.append("اسم_المؤلف_أو_الراوي", authorName);
-      formData.append("عنوان_القصة", storyTitle);
-      formData.append("المجموعة_المقترحة", storyCategory);
-
-      if (currentInputMode === "text") {
-        formData.append("نص_القصة", storyText);
-      } else {
-        formData.append("attachment", pdfFile);
-      }
-
-      // الإرسال عبر خدمة FormSubmit المرتبطة مباشرة ببريدك
-      const response = await fetch("https://formsubmit.co/ajax/mohawen72@gmail.com", {
-        method: "POST",
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error("فشل الاتصال بخدمة الإرسال");
-      }
-
-      showFeedback(
-        "تم إرسال قصتك بنجاح إلى فريق ERWELY (إرويلي)! ستتم مراجعتها ونشرها باسمك في مجموعتها قريباً.",
-        "success"
-      );
+    if (response.ok && result.success) {
+      formFeedback.textContent = "تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.";
+      formFeedback.classList.remove("hidden");
       storySubmitForm.reset();
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)";
-    } catch (error) {
-      showFeedback(
-        "حدث خطأ أثناء الإرسال. تأكد من اتصالك بالإنترنت أو تفعيل بريد الاستقبال أول مرة.",
-        "error"
-      );
-    } finally {
-      submitStoryBtn.disabled = false;
-      submitStoryBtn.textContent = "إرسال القصة للمراجعة";
+    } else {
+      formFeedback.textContent = result.message || "تعذر إرسال النموذج حالياً، حاول مرة أخرى.";
+      formFeedback.classList.remove("hidden");
     }
-  });
+  } catch (error) {
+    formFeedback.textContent = "حدث خطأ في الاتصال أثناء الإرسال، تحقق من الإنترنت وحاول مجدداً.";
+    formFeedback.classList.remove("hidden");
+  }
+});
 
   function showFeedback(message, type) {
     formFeedback.textContent = message;
