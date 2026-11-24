@@ -36,6 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentCategory = null;
   let currentInputMode = "text"; // 'text' أو 'pdf'
   const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20 ميجابايت
+  const APPS_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbyZds7j6i7kynQ7o5Q0GSH6mt-1RA-kBYI0txRA3PYzyNo6vdHeMI1Y-jJfYk53F-Pdwg/exec";
 
   // دالة التبديل بين صفحات الموقع في نفس التبويب
   function switchView(viewName) {
@@ -207,81 +209,71 @@ document.addEventListener("DOMContentLoaded", () => {
     fileStatusText.textContent = `تم اختيار الملف: ${file.name} (${sizeInMb} MB)`;
   });
 
-const APPS_SCRIPT_URL = "ضع_رابط_تطبيق_الويب_هنا/exec";
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (err) => reject(err);
-    reader.readAsDataURL(file);
-  });
-}
-
-const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyZds7j6i7kynQ7o5Q0GSH6mt-1RA-kBYI0txRA3PYzyNo6vdHeMI1Y-jJfYk53F-Pdwg/exec";
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (err) => reject(err);
-    reader.readAsDataURL(file);
-  });
-}
-
-// 5. إرسال النموذج إلى Google Sheets وGoogle Drive عبر Apps Script
-storySubmitForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  formFeedback.classList.add("hidden");
-
-  const titleInput =
-    storySubmitForm.querySelector('[name="title"], [name="storyTitle"], #storyTitle, #title');
-  const categoryInput =
-    storySubmitForm.querySelector('[name="category"], [name="storyCategory"], #storyCategory, #category');
-  const textInput =
-    storySubmitForm.querySelector('[name="storyText"], [name="text"], [name="content"], #storyText, #text');
-  const fileInput = storySubmitForm.querySelector('input[type="file"]');
-
-  const title = titleInput ? titleInput.value.trim() : "";
-  const category = categoryInput ? categoryInput.value.trim() : "";
-  const storyText = textInput ? textInput.value.trim() : "";
-  const pdfFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
-
-  let pdfBase64 = "";
-  let pdfName = "";
-
-  try {
-    if (pdfFile) {
-      pdfBase64 = await fileToBase64(pdfFile);
-      pdfName = pdfFile.name;
-    }
-
-    await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify({
-        title,
-        category,
-        storyText,
-        pdfBase64,
-        pdfName,
-      }),
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
     });
-
-    formFeedback.textContent = "تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.";
-    formFeedback.classList.remove("hidden");
-    storySubmitForm.reset();
-  } catch (error) {
-    formFeedback.textContent = "حدث خطأ في الاتصال أثناء الإرسال، تحقق من الإنترنت وحاول مجدداً.";
-    formFeedback.classList.remove("hidden");
   }
-});
+
   function showFeedback(message, type) {
     formFeedback.textContent = message;
     formFeedback.className = `form-feedback ${type}`;
     formFeedback.classList.remove("hidden");
   }
+
+  // 5. إرسال النموذج إلى Google Sheets وGoogle Drive عبر Apps Script
+  storySubmitForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    formFeedback.classList.add("hidden");
+
+    const titleInput =
+      storySubmitForm.querySelector('[name="title"], [name="storyTitle"], #storyTitle, #title');
+    const categoryInput =
+      storySubmitForm.querySelector('[name="category"], [name="storyCategory"], #storyCategory, #category');
+    const textInput =
+      storySubmitForm.querySelector('[name="storyText"], [name="text"], [name="content"], #storyText, #text');
+    const fileInput = storySubmitForm.querySelector('input[type="file"]');
+
+    const title = titleInput ? titleInput.value.trim() : "";
+    const category = categoryInput ? categoryInput.value.trim() : "";
+    const storyText = textInput ? textInput.value.trim() : "";
+    const pdfFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+    let pdfBase64 = "";
+    let pdfName = "";
+
+    try {
+      if (submitStoryBtn) submitStoryBtn.disabled = true;
+
+      if (pdfFile) {
+        pdfBase64 = await fileToBase64(pdfFile);
+        pdfName = pdfFile.name;
+      }
+
+      await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({
+          title,
+          category,
+          storyText,
+          pdfBase64,
+          pdfName
+        })
+      });
+
+      showFeedback("تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.", "success");
+      storySubmitForm.reset();
+      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)";
+    } catch (error) {
+      showFeedback("حدث خطأ في الاتصال أثناء الإرسال، تحقق من الإنترنت وحاول مجدداً.", "error");
+    } finally {
+      if (submitStoryBtn) submitStoryBtn.disabled = false;
+    }
+  });
 
   // تشغيل التهيئة الأولية
   renderCategories();
