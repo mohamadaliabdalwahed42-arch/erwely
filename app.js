@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentInputMode = "text"; // 'text' أو 'pdf'
   const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20 ميجابايت
   const APPS_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbyZds7j6i7kynQ7o5Q0GSH6mt-1RA-kBYI0txRA3PYzyNo6vdHeMI1Y-jJfYk53F-Pdwg/exec";
+    "https://script.google.com/macros/s/AKfycby_jHKrQkwE0cKYDfMKLHSmUMqPh2zKH0yl7Q-22pfSJlL1lKY_6JJJEHdYLR6eOHK1uA/exec";
 
   // دالة التبديل بين صفحات الموقع في نفس التبويب
   function switchView(viewName) {
