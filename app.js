@@ -207,37 +207,76 @@ document.addEventListener("DOMContentLoaded", () => {
     fileStatusText.textContent = `تم اختيار الملف: ${file.name} (${sizeInMb} MB)`;
   });
 
-  // 5. إرسال النموذج إلى البريد الإلكتروني عبر Web3Forms
+const APPS_SCRIPT_URL = "ضع_رابط_تطبيق_الويب_هنا/exec";
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyZds7j6i7kynQ7o5Q0GSH6mt-1RA-kBYI0txRA3PYzyNo6vdHeMI1Y-jJfYk53F-Pdwg/exec";
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+// 5. إرسال النموذج إلى Google Sheets وGoogle Drive عبر Apps Script
 storySubmitForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   formFeedback.classList.add("hidden");
 
-  const formData = new FormData(storySubmitForm);
-  if (!formData.get("access_key")) {
-    formData.append("access_key", "e37e26bb-e676-4815-bce1-2f80b268fd6f");
-  }
+  const titleInput =
+    storySubmitForm.querySelector('[name="title"], [name="storyTitle"], #storyTitle, #title');
+  const categoryInput =
+    storySubmitForm.querySelector('[name="category"], [name="storyCategory"], #storyCategory, #category');
+  const textInput =
+    storySubmitForm.querySelector('[name="storyText"], [name="text"], [name="content"], #storyText, #text');
+  const fileInput = storySubmitForm.querySelector('input[type="file"]');
+
+  const title = titleInput ? titleInput.value.trim() : "";
+  const category = categoryInput ? categoryInput.value.trim() : "";
+  const storyText = textInput ? textInput.value.trim() : "";
+  const pdfFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+  let pdfBase64 = "";
+  let pdfName = "";
 
   try {
-    const response = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      body: formData,
-    });
-    const result = await response.json();
-
-    if (response.ok && result.success) {
-      formFeedback.textContent = "تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.";
-      formFeedback.classList.remove("hidden");
-      storySubmitForm.reset();
-    } else {
-      formFeedback.textContent = result.message || "تعذر إرسال النموذج حالياً، حاول مرة أخرى.";
-      formFeedback.classList.remove("hidden");
+    if (pdfFile) {
+      pdfBase64 = await fileToBase64(pdfFile);
+      pdfName = pdfFile.name;
     }
+
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify({
+        title,
+        category,
+        storyText,
+        pdfBase64,
+        pdfName,
+      }),
+    });
+
+    formFeedback.textContent = "تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.";
+    formFeedback.classList.remove("hidden");
+    storySubmitForm.reset();
   } catch (error) {
     formFeedback.textContent = "حدث خطأ في الاتصال أثناء الإرسال، تحقق من الإنترنت وحاول مجدداً.";
     formFeedback.classList.remove("hidden");
   }
 });
-
   function showFeedback(message, type) {
     formFeedback.textContent = message;
     formFeedback.className = `form-feedback ${type}`;
