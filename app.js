@@ -21,7 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const fallbackPdfLink = document.getElementById("fallbackPdfLink");
 
   // عناصر نموذج المشاركة
+  const authorNameInput = document.getElementById("authorName");
+  const storyTitleInput = document.getElementById("storyTitle");
   const storyCategorySelect = document.getElementById("storyCategory");
+  const storyTextInput = document.getElementById("storyText");
   const tabWriteText = document.getElementById("tabWriteText");
   const tabUploadPdf = document.getElementById("tabUploadPdf");
   const textInputWrapper = document.getElementById("textInputWrapper");
@@ -226,18 +229,29 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     formFeedback.classList.add("hidden");
 
-    const titleInput =
-      storySubmitForm.querySelector('[name="title"], [name="storyTitle"], #storyTitle, #title');
-    const categoryInput =
-      storySubmitForm.querySelector('[name="category"], [name="storyCategory"], #storyCategory, #category');
-    const textInput =
-      storySubmitForm.querySelector('[name="storyText"], [name="text"], [name="content"], #storyText, #text');
-    const fileInput = storySubmitForm.querySelector('input[type="file"]');
+    const authorName = authorNameInput ? authorNameInput.value.trim() : "";
+    const title = storyTitleInput ? storyTitleInput.value.trim() : "";
+    const category = storyCategorySelect ? storyCategorySelect.value.trim() : "";
+    const storyText = currentInputMode === "text" && storyTextInput ? storyTextInput.value.trim() : "";
+    const pdfFile =
+      currentInputMode === "pdf" && storyPdfFile && storyPdfFile.files && storyPdfFile.files[0]
+        ? storyPdfFile.files[0]
+        : null;
 
-    const title = titleInput ? titleInput.value.trim() : "";
-    const category = categoryInput ? categoryInput.value.trim() : "";
-    const storyText = textInput ? textInput.value.trim() : "";
-    const pdfFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+    if (!authorName || !title || !category) {
+      showFeedback("من فضلك املأ اسم المؤلف وعنوان القصة واختر المجموعة.", "error");
+      return;
+    }
+
+    if (currentInputMode === "text" && !storyText) {
+      showFeedback("من فضلك اكتب نص القصة قبل الإرسال.", "error");
+      return;
+    }
+
+    if (currentInputMode === "pdf" && !pdfFile) {
+      showFeedback("من فضلك اختر ملف PDF قبل الإرسال.", "error");
+      return;
+    }
 
     let pdfBase64 = "";
     let pdfName = "";
@@ -254,6 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         mode: "no-cors",
         body: JSON.stringify({
+          authorName,
           title,
           category,
           storyText,
