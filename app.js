@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentCategory = null;
   let currentInputMode = "text"; // 'text' أو 'pdf'
-  const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20 ميجابايت
+  const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 ميجابايت
   const APPS_SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbwQ0PLrZLQhkgDrlb1SZx89fB_nDP9-MKzVBVr-7_cycV-xKDd_9rgESZufP5YrEyUCjA/exec";
 
@@ -177,13 +177,13 @@ document.addEventListener("DOMContentLoaded", () => {
     textInputWrapper.classList.add("hidden");
   });
 
-  // التحقق من صيغة وحجم ملف PDF (بحد أقصى 20MB)
+  // التحقق من صيغة وحجم ملف PDF (بحد أقصى 5MB)
   storyPdfFile.addEventListener("change", () => {
     fileErrorMsg.classList.add("hidden");
     const file = storyPdfFile.files[0];
 
     if (!file) {
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)";
+      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
       return;
     }
 
@@ -192,16 +192,16 @@ document.addEventListener("DOMContentLoaded", () => {
       fileErrorMsg.textContent = "تنبيه: يُسمح برفع الملفات بصيغة PDF فقط.";
       fileErrorMsg.classList.remove("hidden");
       storyPdfFile.value = "";
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)";
+      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
       return;
     }
 
     if (file.size > MAX_PDF_BYTES) {
       const sizeInMb = (file.size / (1024 * 1024)).toFixed(1);
-      fileErrorMsg.textContent = `تنبيه: حجم الملف (${sizeInMb} MB) يتجاوز الحد الأقصى المسموح به وهو 20 ميجابايت.`;
+      fileErrorMsg.textContent = `تنبيه: حجم الملف (${sizeInMb} MB) يتجاوز الحد الأقصى المسموح به وهو 5 ميجابايت.`;
       fileErrorMsg.classList.remove("hidden");
       storyPdfFile.value = "";
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)";
+      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
       return;
     }
 
@@ -255,9 +255,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let pdfBase64 = "";
     let pdfName = "";
+    const originalBtnText = submitStoryBtn ? submitStoryBtn.textContent : "إرسال القصة للمراجعة";
 
     try {
-      if (submitStoryBtn) submitStoryBtn.disabled = true;
+      if (submitStoryBtn) {
+        submitStoryBtn.disabled = true;
+        submitStoryBtn.textContent = "جاري الإرسال، يرجى الانتظار...";
+      }
 
       if (pdfFile) {
         pdfBase64 = await fileToBase64(pdfFile);
@@ -279,11 +283,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       showFeedback("تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.", "success");
       storySubmitForm.reset();
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)";
+      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
     } catch (error) {
       showFeedback("حدث خطأ في الاتصال أثناء الإرسال، تحقق من الإنترنت وحاول مجدداً.", "error");
     } finally {
-      if (submitStoryBtn) submitStoryBtn.disabled = false;
+      if (submitStoryBtn) {
+        submitStoryBtn.disabled = false;
+        submitStoryBtn.textContent = originalBtnText;
+      }
     }
   });
 

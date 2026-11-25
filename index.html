@@ -54,7 +54,7 @@
         </div>
 
         <!-- وصف كامل للموقع في أسفل الصفحة الرئيسية -->
-        <footer class="about-site-box">
+        <section class="about-site-box" aria-label="عن منصة إرويلي">
           <h2>عن منصة ERWELY (إرويلي)</h2>
           <p>
             <strong>إرويلي (ERWELY)</strong> هي مساحة رقمية عربية مصممة بعناية لعشاق القراءة والحكايات بمختلف ألوانها؛
@@ -62,7 +62,7 @@
             نهدف لتقديم تجربة قراءة مريحة للعين وسريعة التصفح دون تشتيت أو نوافذ منبثقة مزعجة،
             مع فتح الباب أمام الكُتّاب والرواة الجدد والمحترفين لإرسال أعمالهم ومراجعتها ونشرها بأسمائهم لتصل إلى جمهور شغوف بالكلمة.
           </p>
-        </footer>
+        </section>
       </div>
     </section>
 
@@ -159,7 +159,7 @@
                 كتابة القصة مباشرة
               </button>
               <button type="button" class="mode-tab" data-mode="pdf" id="tabUploadPdf">
-                رفع ملف PDF (حد أقصى 20MB)
+                رفع ملف PDF (حد أقصى 5MB)
               </button>
             </div>
           </div>
@@ -175,12 +175,12 @@
             ></textarea>
           </div>
 
-          <!-- الاختيار الأول: رفع ملف PDF بحد أقصى 20 ميجابايت -->
+          <!-- الاختيار الأول: رفع ملف PDF بحد أقصى 5 ميجابايت -->
           <div class="form-group hidden" id="pdfInputWrapper">
-            <label for="storyPdfFile">ملف القصة (بصيغة PDF فقط — الحد الأقصى 20 ميجابايت) <span class="req">*</span></label>
+            <label for="storyPdfFile">ملف القصة (بصيغة PDF فقط — الحد الأقصى 5 ميجابايت) <span class="req">*</span></label>
             <div class="file-drop-area" id="fileDropArea">
               <input type="file" id="storyPdfFile" name="attachment" accept="application/pdf,.pdf" />
-              <p id="fileStatusText">اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 20 MB)</p>
+              <p id="fileStatusText">اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)</p>
             </div>
             <div id="fileErrorMsg" class="alert-error hidden"></div>
           </div>
