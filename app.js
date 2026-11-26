@@ -42,6 +42,64 @@ document.addEventListener("DOMContentLoaded", () => {
   const APPS_SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbwQ0PLrZLQhkgDrlb1SZx89fB_nDP9-MKzVBVr-7_cycV-xKDd_9rgESZufP5YrEyUCjA/exec";
 
+  // مفاتيح التخزين المحلي للمشاهدات والإعجابات
+  const VIEWS_STORAGE_KEY = "erwely_viewed_stories_v1";
+  const LIKES_STORAGE_KEY = "erwely_liked_stories_v1";
+
+  function getStoredMap(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveStoredMap(key, mapObj) {
+    try {
+      localStorage.setItem(key, JSON.stringify(mapObj));
+    } catch (e) {
+      // تجاهل أخطاء التخزين في وضع التصفح الخاص
+    }
+  }
+
+  // توليد مفتاح فريد وثابت لكل قصة
+  function getStoryKey(categoryTitle, story) {
+    if (story.id) return String(story.id);
+    return `${categoryTitle}::${story.title}::${story.author}`;
+  }
+
+  function getStoryViewCount(storyKey) {
+    const viewedMap = getStoredMap(VIEWS_STORAGE_KEY);
+    return viewedMap[storyKey] ? 1 : 0;
+  }
+
+  function markStoryAsViewed(storyKey) {
+    const viewedMap = getStoredMap(VIEWS_STORAGE_KEY);
+    if (!viewedMap[storyKey]) {
+      viewedMap[storyKey] = true;
+      saveStoredMap(VIEWS_STORAGE_KEY, viewedMap);
+    }
+  }
+
+  function isStoryLiked(storyKey) {
+    const likedMap = getStoredMap(LIKES_STORAGE_KEY);
+    return Boolean(likedMap[storyKey]);
+  }
+
+  function toggleStoryLike(storyKey) {
+    const likedMap = getStoredMap(LIKES_STORAGE_KEY);
+    if (likedMap[storyKey]) {
+      delete likedMap[storyKey];
+      saveStoredMap(LIKES_STORAGE_KEY, likedMap);
+      return false;
+    } else {
+      likedMap[storyKey] = true;
+      saveStoredMap(LIKES_STORAGE_KEY, likedMap);
+      return true;
+    }
+  }
+
   // دالة التبديل بين صفحات الموقع في نفس التبويب
   function switchView(viewName) {
     Object.values(views).forEach((section) => section.classList.remove("active-view"));
@@ -86,14 +144,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 2. فتح صفحة المجموعة وعرض قصصها
-  function openCategory(category) {
-    currentCategory = category;
-    categoryPageTitle.textContent = category.title;
-    categoryPageDesc.textContent = category.description;
+  // رسم كروت القصص داخل المجموعة المختارة
+  function renderCategoryStories(category) {
     storiesGrid.innerHTML = "";
 
     category.stories.forEach((story) => {
+      const storyKey = getStoryKey(category.title, story);
+      const viewsCount = getStoryViewCount(storyKey);
+      const liked = isStoryLiked(storyKey);
+
       const card = document.createElement("article");
       card.className = "story-card";
       card.setAttribute("tabindex", "0");
@@ -103,27 +162,72 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="card-badge">⏱ ${story.readTime}</span>
         </div>
         <div class="card-content-part">
-          <h3 class="card-title">${story.title}</h3>
-          <p class="card-desc">بقلم / رواية: <strong>${story.author}</strong></p>
+          <div>
+            <h3 class="card-title">${story.title}</h3>
+            <p class="card-desc">بقلم / رواية: <strong>${story.author}</strong></p>
+          </div>
+          <div class="story-card-stats">
+            <span class="stat-views" title="عدد مرات الفتح">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span class="views-number">${viewsCount}</span>
+            </span>
+
+            <button
+              type="button"
+              class="like-heart-btn ${liked ? "liked" : ""}"
+              aria-pressed="${liked ? "true" : "false"}"
+              title="أعجبتني القصة"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+              <span class="like-count">${liked ? 1 : 0}</span>
+            </button>
+          </div>
         </div>
       `;
 
-      card.addEventListener("click", () => openPdfReader(story));
+      const likeBtn = card.querySelector(".like-heart-btn");
+      const likeCountEl = card.querySelector(".like-count");
+
+      likeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const nowLiked = toggleStoryLike(storyKey);
+        likeBtn.classList.toggle("liked", nowLiked);
+        likeBtn.setAttribute("aria-pressed", nowLiked ? "true" : "false");
+        likeCountEl.textContent = nowLiked ? "1" : "0";
+      });
+
+      card.addEventListener("click", () => openPdfReader(story, storyKey));
       card.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          openPdfReader(story);
+          openPdfReader(story, storyKey);
         }
       });
 
       storiesGrid.appendChild(card);
     });
+  }
 
+  // 2. فتح صفحة المجموعة وعرض قصصها
+  function openCategory(category) {
+    currentCategory = category;
+    categoryPageTitle.textContent = category.title;
+    categoryPageDesc.textContent = category.description;
+    renderCategoryStories(category);
     switchView("category");
   }
 
-  // 3. فتح عارض الـ PDF داخل نفس الموقع
-  function openPdfReader(story) {
+  // 3. فتح عارض الـ PDF داخل نفس الموقع وتسجيل المشاهدة
+  function openPdfReader(story, storyKey) {
+    if (storyKey) {
+      markStoryAsViewed(storyKey);
+    }
+
     readerStoryTitle.textContent = story.title;
     readerStoryInfo.textContent = `المؤلف / الراوي: ${story.author} • مدة القراءة: ${story.readTime}`;
     fallbackPdfLink.href = story.pdfUrl;
@@ -151,6 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("backToCatFromReader").addEventListener("click", () => {
     pdfViewerFrame.src = "";
     if (currentCategory) {
+      renderCategoryStories(currentCategory);
       switchView("category");
     } else {
       switchView("home");
@@ -189,111 +294,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     if (!isPdf) {
-      fileErrorMsg.textContent = "تنبيه: يُسمح برفع الملفات بصيغة PDF فقط.";
-      fileErrorMsg.classList.remove("hidden");
-      storyPdfFile.value = "";
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
-      return;
-    }
-
-    if (file.size > MAX_PDF_BYTES) {
-      const sizeInMb = (file.size / (1024 * 1024)).toFixed(1);
-      fileErrorMsg.textContent = `تنبيه: حجم الملف (${sizeInMb} MB) يتجاوز الحد الأقصى المسموح به وهو 5 ميجابايت.`;
-      fileErrorMsg.classList.remove("hidden");
-      storyPdfFile.value = "";
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
-      return;
-    }
-
-    const sizeInMb = (file.size / (1024 * 1024)).toFixed(2);
-    fileStatusText.textContent = `تم اختيار الملف: ${file.name} (${sizeInMb} MB)`;
-  });
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (err) => reject(err);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function showFeedback(message, type) {
-    formFeedback.textContent = message;
-    formFeedback.className = `form-feedback ${type}`;
-    formFeedback.classList.remove("hidden");
-  }
-
-  // 5. إرسال النموذج إلى Google Sheets وGoogle Drive عبر Apps Script
-  storySubmitForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    formFeedback.classList.add("hidden");
-
-    const authorName = authorNameInput ? authorNameInput.value.trim() : "";
-    const title = storyTitleInput ? storyTitleInput.value.trim() : "";
-    const category = storyCategorySelect ? storyCategorySelect.value.trim() : "";
-    const storyText = currentInputMode === "text" && storyTextInput ? storyTextInput.value.trim() : "";
-    const pdfFile =
-      currentInputMode === "pdf" && storyPdfFile && storyPdfFile.files && storyPdfFile.files[0]
-        ? storyPdfFile.files[0]
-        : null;
-
-    if (!authorName || !title || !category) {
-      showFeedback("من فضلك املأ اسم المؤلف وعنوان القصة واختر المجموعة.", "error");
-      return;
-    }
-
-    if (currentInputMode === "text" && !storyText) {
-      showFeedback("من فضلك اكتب نص القصة قبل الإرسال.", "error");
-      return;
-    }
-
-    if (currentInputMode === "pdf" && !pdfFile) {
-      showFeedback("من فضلك اختر ملف PDF قبل الإرسال.", "error");
-      return;
-    }
-
-    let pdfBase64 = "";
-    let pdfName = "";
-    const originalBtnText = submitStoryBtn ? submitStoryBtn.textContent : "إرسال القصة للمراجعة";
-
-    try {
-      if (submitStoryBtn) {
-        submitStoryBtn.disabled = true;
-        submitStoryBtn.textContent = "جاري الإرسال، يرجى الانتظار...";
-      }
-
-      if (pdfFile) {
-        pdfBase64 = await fileToBase64(pdfFile);
-        pdfName = pdfFile.name;
-      }
-
-      await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify({
-          authorName,
-          title,
-          category,
-          storyText,
-          pdfBase64,
-          pdfName
-        })
-      });
-
-      showFeedback("تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.", "success");
-      storySubmitForm.reset();
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
-    } catch (error) {
-      showFeedback("حدث خطأ في الاتصال أثناء الإرسال، تحقق من الإنترنت وحاول مجدداً.", "error");
-    } finally {
-      if (submitStoryBtn) {
-        submitStoryBtn.disabled = false;
-        submitStoryBtn.textContent = originalBtnText;
-      }
-    }
-  });
-
-  // تشغيل التهيئة الأولية
-  renderCategories();
-});
+      fileErrorMsg.textContent = "تنبيه

@@ -160,19 +160,19 @@ body {
 /* ==================== شبكة الكروت (Responsive: 3 -> 2 -> 1) ==================== */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 كروت في كل صف على الكمبيوتر */
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
 @media (max-width: 992px) {
   .cards-grid {
-    grid-template-columns: repeat(2, 1fr); /* كرتان في كل صف على التابلت */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 600px) {
   .cards-grid {
-    grid-template-columns: 1fr; /* عمود واحد على الموبايل */
+    grid-template-columns: 1fr;
   }
 }
 
@@ -186,12 +186,11 @@ body {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  height: 330px; /* ارتفاع ثابت لضمان تقسيم 70% / 30% بدقة */
+  height: 330px;
   transition: var(--transition-smooth);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* وميض أزرق عند مرور الماوس أو الضغط باللمس */
 .story-card:hover,
 .story-card:active,
 .story-card:focus-visible {
@@ -236,31 +235,98 @@ body {
 
 .card-content-part {
   height: 30%;
-  padding: 12px 16px;
+  padding: 10px 16px 12px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   background: var(--surface-card);
 }
 
 .card-title {
-  font-size: 1.12rem;
+  font-size: 1.08rem;
   font-weight: 800;
   color: var(--royal-blue-dark);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .card-desc {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
-  line-height: 1.45;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+}
+
+/* شريط المشاهدات (العين) والإعجاب (القلب) داخل كرت القصة */
+.story-card-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.stat-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--royal-blue);
+  user-select: none;
+}
+
+.stat-views svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.like-heart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.like-heart-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.like-heart-btn:hover {
+  border-color: #fda4af;
+  color: #e11d48;
+  background: #fff1f2;
+}
+
+.like-heart-btn.liked {
+  background: #ffe4e6;
+  border-color: #fb7185;
+  color: #e11d48;
+}
+
+.like-heart-btn.liked svg {
+  fill: #e11d48;
+  stroke: #e11d48;
+  transform: scale(1.12);
 }
 
 /* ==================== قسم الدعوة للمشاركة ("شارك الآن") ==================== */
