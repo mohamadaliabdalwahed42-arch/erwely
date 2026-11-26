@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // عناصر الصفحات (Views) داخل نفس التبويب
   const views = {
     home: document.getElementById("homeView"),
     category: document.getElementById("categoryView"),
@@ -7,20 +6,17 @@ document.addEventListener("DOMContentLoaded", () => {
     share: document.getElementById("shareView")
   };
 
-  // عناصر الشبكات والنصوص
   const categoriesGrid = document.getElementById("categoriesGrid");
   const storiesGrid = document.getElementById("storiesGrid");
   const categoryPageTitle = document.getElementById("categoryPageTitle");
   const categoryPageDesc = document.getElementById("categoryPageDesc");
 
-  // عناصر عارض PDF
   const pdfViewerFrame = document.getElementById("pdfViewerFrame");
   const pdfLoader = document.getElementById("pdfLoader");
   const readerStoryTitle = document.getElementById("readerStoryTitle");
   const readerStoryInfo = document.getElementById("readerStoryInfo");
   const fallbackPdfLink = document.getElementById("fallbackPdfLink");
 
-  // عناصر نموذج المشاركة
   const authorNameInput = document.getElementById("authorName");
   const storyTitleInput = document.getElementById("storyTitle");
   const storyCategorySelect = document.getElementById("storyCategory");
@@ -37,18 +33,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitStoryBtn = document.getElementById("submitStoryBtn");
 
   let currentCategory = null;
-  let currentInputMode = "text"; // 'text' أو 'pdf'
-  const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 ميجابايت
+  let currentInputMode = "text";
+  const MAX_PDF_BYTES = 5 * 1024 * 1024;
   const APPS_SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbwQ0PLrZLQhkgDrlb1SZx89fB_nDP9-MKzVBVr-7_cycV-xKDd_9rgESZufP5YrEyUCjA/exec";
 
-  // مفاتيح التخزين المحلي للمشاهدات والإعجابات
   const VIEWS_STORAGE_KEY = "erwely_viewed_stories_v1";
   const LIKES_STORAGE_KEY = "erwely_liked_stories_v1";
 
   function getStoredMap(key) {
     try {
-      const raw = localStorage.getItem(key);
+      const raw = window.localStorage.getItem(key);
       return raw ? JSON.parse(raw) : {};
     } catch (e) {
       return {};
@@ -57,16 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function saveStoredMap(key, mapObj) {
     try {
-      localStorage.setItem(key, JSON.stringify(mapObj));
-    } catch (e) {
-      // تجاهل أخطاء التخزين في وضع التصفح الخاص
-    }
+      window.localStorage.setItem(key, JSON.stringify(mapObj));
+    } catch (e) {}
   }
 
-  // توليد مفتاح فريد وثابت لكل قصة
   function getStoryKey(categoryTitle, story) {
-    if (story.id) return String(story.id);
-    return `${categoryTitle}::${story.title}::${story.author}`;
+    if (story && story.id) return String(story.id);
+    return `${categoryTitle || ""}::${(story && story.title) || ""}::${(story && story.author) || ""}`;
   }
 
   function getStoryViewCount(storyKey) {
@@ -100,30 +92,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // دالة التبديل بين صفحات الموقع في نفس التبويب
   function switchView(viewName) {
-    Object.values(views).forEach((section) => section.classList.remove("active-view"));
-    views[viewName].classList.add("active-view");
+    Object.values(views).forEach((section) => {
+      if (section) section.classList.remove("active-view");
+    });
+    if (views[viewName]) {
+      views[viewName].classList.add("active-view");
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // 1. بناء كروت المجموعات في الصفحة الرئيسية + تعبئة قائمة المجموعات في النموذج
   function renderCategories() {
+    if (!categoriesGrid || typeof ERWELY_DATA === "undefined" || !Array.isArray(ERWELY_DATA)) {
+      return;
+    }
+
     categoriesGrid.innerHTML = "";
-    storyCategorySelect.innerHTML = '<option value="">-- اختر المجموعة --</option>';
+    if (storyCategorySelect) {
+      storyCategorySelect.innerHTML = '<option value="">-- اختر المجموعة --</option>';
+    }
 
     ERWELY_DATA.forEach((cat) => {
+      const storiesList = Array.isArray(cat.stories) ? cat.stories : [];
       const card = document.createElement("article");
       card.className = "story-card";
       card.setAttribute("tabindex", "0");
       card.innerHTML = `
         <div class="card-image-part">
-          <img src="${cat.image}" alt="${cat.title}" loading="lazy" />
-          <span class="card-badge">${cat.stories.length} قصص</span>
+          <img src="${cat.image || ""}" alt="${cat.title || ""}" loading="lazy" />
+          <span class="card-badge">${storiesList.length} قصص</span>
         </div>
         <div class="card-content-part">
-          <h3 class="card-title">${cat.title}</h3>
-          <p class="card-desc">${cat.description}</p>
+          <h3 class="card-title">${cat.title || ""}</h3>
+          <p class="card-desc">${cat.description || ""}</p>
         </div>
       `;
 
@@ -137,18 +138,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       categoriesGrid.appendChild(card);
 
-      const option = document.createElement("option");
-      option.value = cat.title;
-      option.textContent = cat.title;
-      storyCategorySelect.appendChild(option);
+      if (storyCategorySelect) {
+        const option = document.createElement("option");
+        option.value = cat.title || "";
+        option.textContent = cat.title || "";
+        storyCategorySelect.appendChild(option);
+      }
     });
   }
 
-  // رسم كروت القصص داخل المجموعة المختارة
   function renderCategoryStories(category) {
+    if (!storiesGrid) return;
     storiesGrid.innerHTML = "";
+    const storiesList = Array.isArray(category.stories) ? category.stories : [];
 
-    category.stories.forEach((story) => {
+    storiesList.forEach((story) => {
       const storyKey = getStoryKey(category.title, story);
       const viewsCount = getStoryViewCount(storyKey);
       const liked = isStoryLiked(storyKey);
@@ -158,13 +162,13 @@ document.addEventListener("DOMContentLoaded", () => {
       card.setAttribute("tabindex", "0");
       card.innerHTML = `
         <div class="card-image-part">
-          <img src="${story.image}" alt="${story.title}" loading="lazy" />
-          <span class="card-badge">⏱ ${story.readTime}</span>
+          <img src="${story.image || ""}" alt="${story.title || ""}" loading="lazy" />
+          <span class="card-badge">⏱ ${story.readTime || ""}</span>
         </div>
         <div class="card-content-part">
           <div>
-            <h3 class="card-title">${story.title}</h3>
-            <p class="card-desc">بقلم / رواية: <strong>${story.author}</strong></p>
+            <h3 class="card-title">${story.title || ""}</h3>
+            <p class="card-desc">بقلم / رواية: <strong>${story.author || ""}</strong></p>
           </div>
           <div class="story-card-stats">
             <span class="stat-views" title="عدد مرات الفتح">
@@ -193,13 +197,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const likeBtn = card.querySelector(".like-heart-btn");
       const likeCountEl = card.querySelector(".like-count");
 
-      likeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const nowLiked = toggleStoryLike(storyKey);
-        likeBtn.classList.toggle("liked", nowLiked);
-        likeBtn.setAttribute("aria-pressed", nowLiked ? "true" : "false");
-        likeCountEl.textContent = nowLiked ? "1" : "0";
-      });
+      if (likeBtn && likeCountEl) {
+        likeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const nowLiked = toggleStoryLike(storyKey);
+          likeBtn.classList.toggle("liked", nowLiked);
+          likeBtn.setAttribute("aria-pressed", nowLiked ? "true" : "false");
+          likeCountEl.textContent = nowLiked ? "1" : "0";
+        });
+      }
 
       card.addEventListener("click", () => openPdfReader(story, storyKey));
       card.addEventListener("keydown", (e) => {
@@ -213,47 +219,47 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 2. فتح صفحة المجموعة وعرض قصصها
   function openCategory(category) {
     currentCategory = category;
-    categoryPageTitle.textContent = category.title;
-    categoryPageDesc.textContent = category.description;
+    if (categoryPageTitle) categoryPageTitle.textContent = category.title || "";
+    if (categoryPageDesc) categoryPageDesc.textContent = category.description || "";
     renderCategoryStories(category);
     switchView("category");
   }
 
-  // 3. فتح عارض الـ PDF داخل نفس الموقع وتسجيل المشاهدة
   function openPdfReader(story, storyKey) {
     if (storyKey) {
       markStoryAsViewed(storyKey);
     }
 
-    readerStoryTitle.textContent = story.title;
-    readerStoryInfo.textContent = `المؤلف / الراوي: ${story.author} • مدة القراءة: ${story.readTime}`;
-    fallbackPdfLink.href = story.pdfUrl;
+    if (readerStoryTitle) readerStoryTitle.textContent = story.title || "";
+    if (readerStoryInfo) {
+      readerStoryInfo.textContent = `المؤلف / الراوي: ${story.author || ""} • مدة القراءة: ${story.readTime || ""}`;
+    }
+    if (fallbackPdfLink) fallbackPdfLink.href = story.pdfUrl || "#";
 
-    pdfLoader.classList.remove("hidden");
-    pdfViewerFrame.src = `${story.pdfUrl}#toolbar=1&navpanes=0`;
-
-    pdfViewerFrame.onload = () => {
-      pdfLoader.classList.add("hidden");
-    };
+    if (pdfLoader) pdfLoader.classList.remove("hidden");
+    if (pdfViewerFrame) {
+      pdfViewerFrame.src = `${story.pdfUrl || ""}#toolbar=1&navpanes=0`;
+      pdfViewerFrame.onload = () => {
+        if (pdfLoader) pdfLoader.classList.add("hidden");
+      };
+    }
 
     setTimeout(() => {
-      pdfLoader.classList.add("hidden");
+      if (pdfLoader) pdfLoader.classList.add("hidden");
     }, 2500);
 
     switchView("reader");
   }
 
-  // أزرار التنقل والرجوع
-  document.getElementById("brandHomeBtn").addEventListener("click", () => switchView("home"));
-  document.getElementById("navHomeBtn").addEventListener("click", () => switchView("home"));
-  document.getElementById("backToHomeFromCat").addEventListener("click", () => switchView("home"));
-  document.getElementById("backToHomeFromShare").addEventListener("click", () => switchView("home"));
+  document.getElementById("brandHomeBtn")?.addEventListener("click", () => switchView("home"));
+  document.getElementById("navHomeBtn")?.addEventListener("click", () => switchView("home"));
+  document.getElementById("backToHomeFromCat")?.addEventListener("click", () => switchView("home"));
+  document.getElementById("backToHomeFromShare")?.addEventListener("click", () => switchView("home"));
 
-  document.getElementById("backToCatFromReader").addEventListener("click", () => {
-    pdfViewerFrame.src = "";
+  document.getElementById("backToCatFromReader")?.addEventListener("click", () => {
+    if (pdfViewerFrame) pdfViewerFrame.src = "";
     if (currentCategory) {
       renderCategoryStories(currentCategory);
       switchView("category");
@@ -262,36 +268,148 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.getElementById("navShareBtn").addEventListener("click", () => switchView("share"));
-  document.getElementById("openShareFromCta").addEventListener("click", () => switchView("share"));
+  document.getElementById("navShareBtn")?.addEventListener("click", () => switchView("share"));
+  document.getElementById("openShareFromCta")?.addEventListener("click", () => switchView("share"));
 
-  // 4. التبديل بين كتابة القصة أو رفع ملف PDF
-  tabWriteText.addEventListener("click", () => {
+  tabWriteText?.addEventListener("click", () => {
     currentInputMode = "text";
     tabWriteText.classList.add("active");
-    tabUploadPdf.classList.remove("active");
-    textInputWrapper.classList.remove("hidden");
-    pdfInputWrapper.classList.add("hidden");
+    tabUploadPdf?.classList.remove("active");
+    textInputWrapper?.classList.remove("hidden");
+    pdfInputWrapper?.classList.add("hidden");
   });
 
-  tabUploadPdf.addEventListener("click", () => {
+  tabUploadPdf?.addEventListener("click", () => {
     currentInputMode = "pdf";
     tabUploadPdf.classList.add("active");
-    tabWriteText.classList.remove("active");
-    pdfInputWrapper.classList.remove("hidden");
-    textInputWrapper.classList.add("hidden");
+    tabWriteText?.classList.remove("active");
+    pdfInputWrapper?.classList.remove("hidden");
+    textInputWrapper?.classList.add("hidden");
   });
 
-  // التحقق من صيغة وحجم ملف PDF (بحد أقصى 5MB)
-  storyPdfFile.addEventListener("change", () => {
-    fileErrorMsg.classList.add("hidden");
+  storyPdfFile?.addEventListener("change", () => {
+    fileErrorMsg?.classList.add("hidden");
     const file = storyPdfFile.files[0];
 
     if (!file) {
-      fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
+      if (fileStatusText) fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
       return;
     }
 
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     if (!isPdf) {
-      fileErrorMsg.textContent = "تنبيه
+      if (fileErrorMsg) {
+        fileErrorMsg.textContent = "تنبيه: يُسمح برفع الملفات بصيغة PDF فقط.";
+        fileErrorMsg.classList.remove("hidden");
+      }
+      storyPdfFile.value = "";
+      if (fileStatusText) fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
+      return;
+    }
+
+    if (file.size > MAX_PDF_BYTES) {
+      const sizeInMb = (file.size / (1024 * 1024)).toFixed(1);
+      if (fileErrorMsg) {
+        fileErrorMsg.textContent = `تنبيه: حجم الملف (${sizeInMb} MB) يتجاوز الحد الأقصى المسموح به وهو 5 ميجابايت.`;
+        fileErrorMsg.classList.remove("hidden");
+      }
+      storyPdfFile.value = "";
+      if (fileStatusText) fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
+      return;
+    }
+
+    const sizeInMb = (file.size / (1024 * 1024)).toFixed(2);
+    if (fileStatusText) fileStatusText.textContent = `تم اختيار الملف: ${file.name} (${sizeInMb} MB)`;
+  });
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showFeedback(message, type) {
+    if (!formFeedback) return;
+    formFeedback.textContent = message;
+    formFeedback.className = `form-feedback ${type}`;
+    formFeedback.classList.remove("hidden");
+  }
+
+  storySubmitForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    formFeedback?.classList.add("hidden");
+
+    const authorName = authorNameInput ? authorNameInput.value.trim() : "";
+    const title = storyTitleInput ? storyTitleInput.value.trim() : "";
+    const category = storyCategorySelect ? storyCategorySelect.value.trim() : "";
+    const storyText = currentInputMode === "text" && storyTextInput ? storyTextInput.value.trim() : "";
+    const pdfFile =
+      currentInputMode === "pdf" && storyPdfFile && storyPdfFile.files && storyPdfFile.files[0]
+        ? storyPdfFile.files[0]
+        : null;
+
+    if (!authorName || !title || !category) {
+      showFeedback("من فضلك املأ اسم المؤلف وعنوان القصة واختر المجموعة.", "error");
+      return;
+    }
+
+    if (currentInputMode === "text" && !storyText) {
+      showFeedback("من فضلك اكتب نص القصة قبل الإرسال.", "error");
+      return;
+    }
+
+    if (currentInputMode === "pdf" && !pdfFile) {
+      showFeedback("من فضلك اختر ملف PDF قبل الإرسال.", "error");
+      return;
+    }
+
+    let pdfBase64 = "";
+    let pdfName = "";
+    const originalBtnText = submitStoryBtn ? submitStoryBtn.textContent : "إرسال القصة للمراجعة";
+
+    try {
+      if (submitStoryBtn) {
+        submitStoryBtn.disabled = true;
+        submitStoryBtn.textContent = "جاري الإرسال، يرجى الانتظار...";
+      }
+
+      if (pdfFile) {
+        pdfBase64 = await fileToBase64(pdfFile);
+        pdfName = pdfFile.name;
+      }
+
+      await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({
+          authorName,
+          title,
+          category,
+          storyText,
+          pdfBase64,
+          pdfName
+        })
+      });
+
+      showFeedback("تم إرسال مشاركتك بنجاح، شكراً لمساهمتك في ERWELY.", "success");
+      storySubmitForm.reset();
+      if (fileStatusText) fileStatusText.textContent = "اضغط لاختيار ملف PDF من جهازك (الحد الأقصى 5 MB)";
+    } catch (error) {
+      showFeedback("حدث خطأ في الاتصال أثناء الإرسال، تحقق من الإنترنت وحاول مجدداً.", "error");
+    } finally {
+      if (submitStoryBtn) {
+        submitStoryBtn.disabled = false;
+        submitStoryBtn.textContent = originalBtnText;
+      }
+    }
+  });
+
+  try {
+    renderCategories();
+  } catch (err) {
+    console.error("Error rendering categories:", err);
+  }
+});
