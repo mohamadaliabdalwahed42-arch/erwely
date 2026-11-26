@@ -82,5 +82,19 @@ const ERWELY_DATA = [
     description: "صراعات إنسانية عميقة وأحداث مؤثرة تلامس القلوب وتبقى في الذاكرة.",
     image: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=800&q=80",
     stories: []
+  },
+  {
+    id: "prophets-islam",
+    title: "قصص الأنبياء في الإسلام",
+    description: "سرد مبسط وملهم لحياة الأنبياء والرسل ودعوتهم والصبر والحكمة في قصصهم.",
+    image: "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=800&q=80",
+    stories: []
+  },
+  {
+    id: "kids-stories",
+    title: "قصص الأطفال",
+    description: "حكايات ممتعة ومصورة للصغار تغرس القيم والأخلاق والخيال الجميل بأسلوب بسيط.",
+    image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=800&q=80",
+    stories: []
   }
 ];
