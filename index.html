@@ -80,6 +80,25 @@
 
       <div class="container">
         <p class="category-desc-banner" id="categoryPageDesc"></p>
+
+        <!-- محرك البحث الفوري داخل المجموعة -->
+        <div id="categorySearchWrapper" class="category-search-wrapper hidden">
+          <div class="search-input-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              id="categorySearchInput"
+              placeholder="ابحث داخل المجموعة بعنوان القصة أو اسم المؤلف..."
+              autocomplete="off"
+            />
+            <button type="button" id="clearCategorySearchBtn" class="clear-search-btn hidden" title="مسح البحث" aria-label="مسح البحث">×</button>
+          </div>
+          <p id="categorySearchEmpty" class="search-empty-msg hidden">لا توجد قصص مطابقة لبحثك في هذه المجموعة.</p>
+        </div>
+
         <div id="storiesGrid" class="cards-grid">
           <!-- يتم توليد كروت القصص ديناميكياً -->
         </div>

@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const categoryPageTitle = document.getElementById("categoryPageTitle");
   const categoryPageDesc = document.getElementById("categoryPageDesc");
 
+  // عناصر محرك البحث داخل المجموعة
+  const categorySearchWrapper = document.getElementById("categorySearchWrapper");
+  const categorySearchInput = document.getElementById("categorySearchInput");
+  const clearCategorySearchBtn = document.getElementById("clearCategorySearchBtn");
+  const categorySearchEmpty = document.getElementById("categorySearchEmpty");
+
   const pdfViewerFrame = document.getElementById("pdfViewerFrame");
   const pdfLoader = document.getElementById("pdfLoader");
   const readerStoryTitle = document.getElementById("readerStoryTitle");
@@ -92,6 +98,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function normalizeArabic(text) {
+    return String(text || "")
+      .toLowerCase()
+      .replace(/[أإآ]/g, "ا")
+      .replace(/ة/g, "ه")
+      .replace(/ى/g, "ي")
+      .trim();
+  }
+
   function switchView(viewName) {
     Object.values(views).forEach((section) => {
       if (section) section.classList.remove("active-view");
@@ -147,12 +162,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function renderCategoryStories(category) {
+  function renderCategoryStories(category, searchQuery = "") {
     if (!storiesGrid) return;
     storiesGrid.innerHTML = "";
-    const storiesList = Array.isArray(category.stories) ? category.stories : [];
 
-    storiesList.forEach((story) => {
+    const allStories = Array.isArray(category.stories) ? category.stories : [];
+    const normalizedQuery = normalizeArabic(searchQuery);
+
+    if (categorySearchWrapper) {
+      categorySearchWrapper.classList.toggle("hidden", allStories.length === 0);
+    }
+    if (clearCategorySearchBtn) {
+      clearCategorySearchBtn.classList.toggle("hidden", !searchQuery.trim());
+    }
+
+    const filteredStories = normalizedQuery
+      ? allStories.filter((story) => {
+          const titleMatch = normalizeArabic(story.title).includes(normalizedQuery);
+          const authorMatch = normalizeArabic(story.author).includes(normalizedQuery);
+          return titleMatch || authorMatch;
+        })
+      : allStories;
+
+    if (categorySearchEmpty) {
+      const showEmpty = allStories.length > 0 && filteredStories.length === 0;
+      categorySearchEmpty.classList.toggle("hidden", !showEmpty);
+    }
+
+    filteredStories.forEach((story) => {
       const storyKey = getStoryKey(category.title, story);
       const viewsCount = getStoryViewCount(storyKey);
       const liked = isStoryLiked(storyKey);
@@ -223,9 +260,22 @@ document.addEventListener("DOMContentLoaded", () => {
     currentCategory = category;
     if (categoryPageTitle) categoryPageTitle.textContent = category.title || "";
     if (categoryPageDesc) categoryPageDesc.textContent = category.description || "";
-    renderCategoryStories(category);
+    if (categorySearchInput) categorySearchInput.value = "";
+    renderCategoryStories(category, "");
     switchView("category");
   }
+
+  categorySearchInput?.addEventListener("input", () => {
+    if (!currentCategory) return;
+    renderCategoryStories(currentCategory, categorySearchInput.value);
+  });
+
+  clearCategorySearchBtn?.addEventListener("click", () => {
+    if (!currentCategory || !categorySearchInput) return;
+    categorySearchInput.value = "";
+    renderCategoryStories(currentCategory, "");
+    categorySearchInput.focus();
+  });
 
   function openPdfReader(story, storyKey) {
     if (storyKey) {
@@ -261,7 +311,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("backToCatFromReader")?.addEventListener("click", () => {
     if (pdfViewerFrame) pdfViewerFrame.src = "";
     if (currentCategory) {
-      renderCategoryStories(currentCategory);
+      const currentQuery = categorySearchInput ? categorySearchInput.value : "";
+      renderCategoryStories(currentCategory, currentQuery);
       switchView("category");
     } else {
       switchView("home");

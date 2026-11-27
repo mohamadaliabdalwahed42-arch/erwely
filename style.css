@@ -658,3 +658,78 @@ body {
 .full-width-btn {
   width: 100%;
 }
+
+/* ==================== محرك البحث داخل المجموعة ==================== */
+.category-search-wrapper {
+  margin-bottom: 24px;
+}
+
+.search-input-box {
+  position: relative;
+  max-width: 540px;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  width: 19px;
+  height: 19px;
+  color: var(--royal-blue);
+  pointer-events: none;
+}
+
+.search-input-box input {
+  width: 100%;
+  padding: 12px 44px 12px 40px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.96rem;
+  background: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  transition: var(--transition-smooth);
+}
+
+.search-input-box input:focus {
+  outline: none;
+  border-color: var(--electric-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 8px 20px rgba(37, 99, 235, 0.12);
+}
+
+.clear-search-btn {
+  position: absolute;
+  left: 12px;
+  background: #e2e8f0;
+  color: var(--royal-blue-dark);
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+
+.clear-search-btn:hover {
+  background: var(--electric-blue);
+  color: #ffffff;
+}
+
+.search-empty-msg {
+  margin-top: 18px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 700;
+}
